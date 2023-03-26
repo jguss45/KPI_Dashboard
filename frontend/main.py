@@ -21,10 +21,10 @@ def login():
         response = requests.get(base_url+'/users/login', json=payload)
 
         if response.status_code == 200:
-            data = response.json()
-            token = data["access_token"]
-            st.session_state.token = token
+            token = response.content
+            st.session_state["token"] = token
             st.success("Logged in successfully!")
+            st.write(st.session_state.token)
             return st.session_state.token
         else:
             st.error("Invalid credentials.")
@@ -41,8 +41,9 @@ def register():
 
         if response.status_code == 200:
             token = response.content
-            st.session_state.token = token
+            st.session_state["token"] = token
             st.success("Logged in successfully!")
+            st.write(st.session_state.token)
             return st.session_state.token
         else:
             st.error("Invalid credentials.")
@@ -56,14 +57,13 @@ def login_or_register():
 
     #show form
     if auth_choice == "Login":
-            token = login()
+        token = login()
     else:
         token = register()
     
     # If the user has a valid JWT token, show the restricted content
     if token:
         try:
-            display_dashboard(token)
             st.experimental_rerun()
         except jwt.exceptions.InvalidSignatureError:
             st.write("Invalid token")
@@ -76,6 +76,8 @@ def main():
 
     if "token" not in st.session_state:
         login_or_register()
+    if "token" in st.session_state:
+        display_dashboard(st.session_state.token)
 
 
 if __name__ == "__main__":

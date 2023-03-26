@@ -26,7 +26,8 @@ api = Api(app, version = '1.0',
     title = 'API for Final Capstone/Python Project',
     description = """
         This REST API is an API to built with FLASK
-        and FLASK-RESTX libraries
+        and FLASK-RESTX libraries. This API serves a 
+        frontend Streamlit dashboard
         """,
     contact = "jguss45@student.ie.edu",
     endpoint = "/api/v1"
@@ -45,47 +46,69 @@ def disconnect(conn):
 
 #Authentication ENDPOINTS
 users = Namespace('users',
-    description = 'All operations related to users of the app',
+    description = 'All operations related to users, notably authentication',
     path='/api/v1')
 api.add_namespace(users)
 
-@users.route("/users/login")
-class get_all_users(Resource):
+@users.route("/users")
+@users.doc("This route is for development use, is not used in the app")
+class view_users(Resource):
     def get(self):
-        username = request.json.get('username')
-        password = request.json.get('password')
         conn = connect()
         select = text(f"""
-            SELECT *
-            FROM users
-            WHERE username = '{username}'
-            AND password = '{password}';""")
+            SELECT * FROM users""")
         result = conn.execute(select).fetchall()
         disconnect(conn)
         return jsonify({'result': [dict(row) for row in result]})
 
+@users.route("/users/login")
+class handle_login(Resource):
+    def get(self):
+        username = request.json.get('username')
+        password = request.json.get('password')
+
+        #hashed_password = generate_password_hash(password)
+        try:
+            conn = connect()
+            select = text(f"""
+                SELECT * FROM users
+                WHERE username = :username AND password = :password""")
+            result = conn.execute(select, username=username, password=password)
+            disconnect(conn)
+
+            if result.rowcount > 0:
+            # Generate JWT token and send it as part of the response
+                token = jwt.encode({'username': username}, "please-dont-hack-me", algorithm='HS256')
+                response = make_response(token, 200)
+            else:
+                response = make_response(jsonify({'message': 'Unable to login. Please try again or make sure to first register.'}), 401)
+        except Exception as e:
+            response = make_response(jsonify({'message': e}), 500)
+        return response
 @users.route("/users/register", methods=["POST"])
-class create_user(Resource):
+class handle_register(Resource):
     def post(self):
         username = request.json.get('username')
         password = request.json.get('password')
 
         #hashed_password = generate_password_hash(password)
-        conn = connect()
-        select = text(f"""
-            INSERT INTO users(username,password)
-            VALUES (:username, :password)""")
-        result = conn.execute(select, username=username, password=password)
-        disconnect(conn)
+        try:
+            conn = connect()
+            select = text(f"""
+                INSERT INTO users(username,password)
+                VALUES (:username, :password)""")
+            result = conn.execute(select, username=username, password=password)
+            disconnect(conn)
 
-        if result.rowcount > 0:
-        # Generate JWT token and send it as part of the response
-            token = jwt.encode({'username': username}, "please-dont-hack-me", algorithm='HS256')
-            #response = make_response(jsonify({'message': 'User account created', 'token': token}), 200)
-            response = make_response(token, 200)
-        
-        else:
-            response = make_response(jsonify({'message': 'Unable to create user account. You may already have an account created.'}), 400)
+            if result.rowcount > 0:
+            # Generate JWT token and send it as part of the response
+                token = jwt.encode({'username': username}, "please-dont-hack-me", algorithm='HS256')
+                #response = make_response(jsonify({'message': 'User account created', 'token': token}), 200)
+                response = make_response(token, 200)
+            else:
+                response = make_response(jsonify({'message': 'Unable to create user account. You may already have an account created.'}), 401)
+        except Exception as e:
+            response = make_response(jsonify({'message': e}), 500)
         return response
 
 #CUSTOMERS ENDPOINTS

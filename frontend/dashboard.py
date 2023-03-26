@@ -20,21 +20,15 @@ def display_dashboard(token):
     #Dashboard Header    
     #image_url = "https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg"
     #st.image(image_url, width=200)
-    st.write("Welcome, ", decoded_token["username"], ". Hope you find these insights useful!")
-    st.title("KPI Dashboard")
-    st.write("The goal of this report is provide our company with better insight into how our products are performing in the market, and better understand who our customers are")
+    st.write("Welcome ", decoded_token["username"], ". Hope you find these insights useful!")
+    st.write("The goal of this report is provide our company with better insight into how our products are performing in the market, and better understand who our customers are.")
 
 
     #Fetch Gender data
+    #note: I could definitely hard code genders here to improve performance, but will opt not to
     gender_endpoint = f'{base_url}/customers/gender'
     response = requests.get(gender_endpoint)
     gender_lst = pd.DataFrame(response.json()['result'])['gender'].to_list()
-
-    #Fetch Age data
-    age_endpoint = f'{base_url}/customers/age'
-    response = requests.get(age_endpoint)
-    age_lst = pd.DataFrame(response.json()['result'])['age'].to_list()
-
 
     #Sidebar with filters
     st.sidebar.write("FILTERS")
@@ -67,8 +61,6 @@ def display_dashboard(token):
     subscriptions_endpoint = f'{base_url}/subscriptions'
     response = requests.get(subscriptions_endpoint)
     subscription_df = pd.DataFrame(response.json()['result'])
-
-
 
     subscription_df["signup_date_time"] = pd.to_datetime(subscription_df["signup_date_time"])
     subscription_df["cancel_date_time"] = pd.to_datetime(subscription_df["cancel_date_time"])
