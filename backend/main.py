@@ -11,8 +11,7 @@ from flask_restx import Api, Namespace, Resource
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 
-SECRET_KEY = "please-dont-hack-me"
-
+#Database credentials
 user = "root"
 passw = "food45"
 host = '34.175.117.30'
@@ -23,16 +22,17 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = host
 
 api = Api(app, version = '1.0',
-    title = 'API for Final Capstone/Python Project',
+    title = 'API for Streamlit Dashboard',
     description = """
         This REST API is an API to built with FLASK
         and FLASK-RESTX libraries. This API serves a 
         frontend Streamlit dashboard
         """,
-    contact = "jguss45@student.ie.edu",
+    contact = "jguss45@gmail.com",
     endpoint = "/api/v1"
 )
 
+#function to connect to DB
 def connect():
     db = create_engine(
     'mysql+pymysql://{0}:{1}@{2}/{3}' \
@@ -41,10 +41,15 @@ def connect():
     conn = db.connect()
     return conn
 
+#function to disconnect from DB
 def disconnect(conn):
     conn.close()
 
+#################################
+
 #Authentication ENDPOINTS
+
+
 users = Namespace('users',
     description = 'All operations related to users, notably authentication',
     path='/api/v1')
@@ -64,51 +69,66 @@ class view_users(Resource):
 @users.route("/users/login")
 class handle_login(Resource):
     def get(self):
+        #receive user login input
         username = request.json.get('username')
         password = request.json.get('password')
 
-        #hashed_password = generate_password_hash(password)
+        #validate login details against database
         try:
             conn = connect()
             select = text(f"""
                 SELECT * FROM users
-                WHERE username = :username AND password = :password""")
-            result = conn.execute(select, username=username, password=password)
+                WHERE username = :username""")
+            result = conn.execute(select, username=username)
+            user = result.fetchone()
             disconnect(conn)
 
-            if result.rowcount > 0:
-            # Generate JWT token and send it as part of the response
+            if user and check_password_hash(user.password, password):
+                # Generate JWT token and send it as part of the response
                 token = jwt.encode({'username': username}, "please-dont-hack-me", algorithm='HS256')
                 response = make_response(token, 200)
             else:
-                response = make_response(jsonify({'message': 'Unable to login. Please try again or make sure to first register.'}), 401)
+                response = make_response(jsonify({'message': 'Unable to login. Please ensure your credentials are correct or register a new account.'}), 401)
         except Exception as e:
-            response = make_response(jsonify({'message': e}), 500)
+            response = make_response(e, 500)
         return response
 @users.route("/users/register", methods=["POST"])
 class handle_register(Resource):
     def post(self):
+        #receive user registration input
         username = request.json.get('username')
         password = request.json.get('password')
 
-        #hashed_password = generate_password_hash(password)
+        hashed_password = generate_password_hash(password)
         try:
+            # Check if the username already exists in the database
             conn = connect()
-            select = text(f"""
-                INSERT INTO users(username,password)
-                VALUES (:username, :password)""")
-            result = conn.execute(select, username=username, password=password)
-            disconnect(conn)
+            select_query = text("""
+                SELECT * FROM users WHERE username = :username;
+            """)
+            result = conn.execute(select_query, username=username)
+            existing_user = result.fetchone()
 
+            # If the username already exists, return an error
+            if existing_user:
+                response = make_response(jsonify({'message': 'Username already exists. Please create a new username or login with your existing credentials.'}), 400)
+                conn.close()
+                return response
+            #if username doesn't exist, proceed with generating new user
+            insert_query = text("""
+                INSERT INTO users (username, password)
+                VALUES (:username, :password);""")
+            result = conn.execute(insert_query, username=username, password=hashed_password)
+
+            #validate db insert worked 
             if result.rowcount > 0:
             # Generate JWT token and send it as part of the response
                 token = jwt.encode({'username': username}, "please-dont-hack-me", algorithm='HS256')
-                #response = make_response(jsonify({'message': 'User account created', 'token': token}), 200)
                 response = make_response(token, 200)
             else:
                 response = make_response(jsonify({'message': 'Unable to create user account. You may already have an account created.'}), 401)
         except Exception as e:
-            response = make_response(jsonify({'message': e}), 500)
+            response = make_response(e, 500)
         return response
 
 #CUSTOMERS ENDPOINTS
@@ -116,35 +136,6 @@ customers = Namespace('customers',
     description = 'All operations related to customers',
     path='/api/v1')
 api.add_namespace(customers)
-
-@customers.route("/customers")
-class get_all_users(Resource):
-
-    def get(self):
-        conn = connect()
-        select = text("""
-            SELECT *
-            FROM customer
-            LIMIT 10;""")
-        result = conn.execute(select).fetchall()
-        disconnect(conn)
-        return jsonify({'result': [dict(row) for row in result]})
-
-@customers.route("/customers/<string:id>")
-@customers.doc(params = {'id': 'The ID of the user'})
-class select_user(Resource):
-
-    @api.response(404, "CUSTOMER not found")
-    def get(self, id):
-        id = str(id)
-        conn = connect()
-        select = text(f"""
-            SELECT *
-            FROM customer
-            WHERE customer_id = '{id}';""")
-        result = conn.execute(select).fetchall()
-        disconnect(conn)
-        return jsonify({'result': [dict(row) for row in result]})
 
 @customers.route("/customers/gender")
 @customers.doc("To query customers by gender")

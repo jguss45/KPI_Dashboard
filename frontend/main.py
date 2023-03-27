@@ -9,7 +9,7 @@ base_url = 'http://127.0.0.1:5000/api/v1'
 #Streamlit app title
 st.set_page_config(page_title="H&M KPI Dashboard")
 
-#Defining function to authenticate user
+#Defining function to handle user login
 def login():
     st.header("Login")
 
@@ -26,9 +26,12 @@ def login():
             st.success("Logged in successfully!")
             st.write(st.session_state.token)
             return st.session_state.token
+        elif response.status_code == 500:
+            st.error(response.content)
         else:
-            st.error("Invalid credentials.")
+            st.error(response.json()['message'])
 
+#function to handle registering new users
 def register():
     st.header("Register")
 
@@ -45,12 +48,17 @@ def register():
             st.success("Logged in successfully!")
             st.write(st.session_state.token)
             return st.session_state.token
+        elif response.status_code == 500:
+            st.error(response.content)
         else:
-            st.error("Invalid credentials.")
+            st.error(response.json()['message'])
 
+
+#function to display streanlit dashboard data
 def present_dashboard(token):
     display_dashboard(token)
 
+#function to handle taking user input to either login or register
 def login_or_register():
     #prompt login or register
     auth_choice = st.radio("Select an option", ("Login", "Register"))
@@ -68,6 +76,7 @@ def login_or_register():
         except jwt.exceptions.InvalidSignatureError:
             st.write("Invalid token")
 
+#main function. access to dashboard only granted if user is authenticated with a token
 def main():
     
     image_url = "https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg"

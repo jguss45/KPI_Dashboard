@@ -18,8 +18,6 @@ def display_dashboard(token):
     decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         
     #Dashboard Header    
-    #image_url = "https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg"
-    #st.image(image_url, width=200)
     st.write("Welcome ", decoded_token["username"], ". Hope you find these insights useful!")
     st.write("The goal of this report is provide our company with better insight into how our products are performing in the market, and better understand who our customers are.")
 
@@ -61,9 +59,10 @@ def display_dashboard(token):
     subscriptions_endpoint = f'{base_url}/subscriptions'
     response = requests.get(subscriptions_endpoint)
     subscription_df = pd.DataFrame(response.json()['result'])
-
+    #convert dates to datetime 
     subscription_df["signup_date_time"] = pd.to_datetime(subscription_df["signup_date_time"])
     subscription_df["cancel_date_time"] = pd.to_datetime(subscription_df["cancel_date_time"])
+
     last_day_dt = datetime.datetime(year = 2021, month = 12, day = 31)
 
     #total number of subs per product
@@ -84,6 +83,7 @@ def display_dashboard(token):
     product2_cancellations_as_percent = str(round(product2_cancellations_sum / product2_sum * 100)) + "%"
 
     #total subscriptions and cancellations overall
+        #ended up determining these kpis to not really be significant 
     #total_product_cancellations = (subscription_df['cancel_date_time'].notnull()).sum()
     #total_product_cancellations_as_percent = str(round(total_product_cancellations / total_product_subscriptions * 100)) + "%"
 
@@ -122,27 +122,27 @@ def display_dashboard(token):
     st.subheader('Comparing Product Subscriptions')
     st.bar_chart(sub_bar_chart_df)
 
+    #display cancellation kpis
+    sub_kpi1, sub_kpi2 = st.columns(2)
 
-    sub_kpi7, sub_kpi8 = st.columns(2)
-
-    sub_kpi7.metric(
+    sub_kpi1.metric(
         label="Total Product 1 Cancellations",
         value=product1_cancellations_sum,
     )
 
-    sub_kpi8.metric(
+    sub_kpi2.metric(
         label="Total Product 2 Cancellations",
         value=product2_cancellations_sum,
     )
 
-    sub_kpi9, sub_kpi3 = st.columns(2)
+    sub_kpi1, sub_kpi2 = st.columns(2)
 
-    sub_kpi9.metric(
+    sub_kpi1.metric(
         label="Product 1 Subscriptions Cancelled (%)",
         value= product1_cancellations_as_percent
     )
 
-    sub_kpi3.metric(
+    sub_kpi2.metric(
         label = "Product 2 Subscriptions Cancelled (%)",
         value = product2_cancellations_as_percent,
     )
@@ -169,19 +169,20 @@ def display_dashboard(token):
     subscription_df[["product", "diff_days"]] \
         .groupby(['product']).mean()
 
-    sub_kpi4, sub_kpi5, sub_kpi6 = st.columns(3)
+    #display avg sub days kpis
+    sub_kpi1, sub_kpi2, sub_kpi3 = st.columns(3)
 
-    sub_kpi4.metric(
+    sub_kpi1.metric(
         label = "Avg sub days Product 1",
         value = round(prd1_avg_cancel_days),
     )
 
-    sub_kpi5.metric(
+    sub_kpi2.metric(
         label = "Avg sub days Product 2",
         value = round(prd2_avg_cancel_days),
     )
 
-    sub_kpi6.metric(
+    sub_kpi3.metric(
         label = "Avg sub days all products",
         value = round(avg_cancel_days),
     )
@@ -193,7 +194,6 @@ def display_dashboard(token):
     st.subheader('Comparing Average Days Until Cancellation')
     st.bar_chart(sub_days_bar_chart_df)
 
-
     num_customers = len(customer_df["customer_id"])#.nunique()
     avg_age = np.mean(customer_df["age"])
     num_genders = customer_df["gender"].nunique()
@@ -202,6 +202,7 @@ def display_dashboard(token):
     st.text("*Note: Use side bar to filter data by gender and age range")
     kpi1, kpi2, kpi3 = st.columns(3)
 
+    #display filtered list kpis
     kpi1.metric(
         label = "Customer sample size",
         value = num_customers,
@@ -244,6 +245,7 @@ def display_dashboard(token):
 
     st.subheader("Product 1 Annual Revenues (in thousands)")
 
+    #display revenue kpis
     kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
     kpi1.metric(
