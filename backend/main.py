@@ -150,20 +150,6 @@ class get_cust_genders(Resource):
         result = conn.execute(select).fetchall()
         disconnect(conn)
         return jsonify({'result': [dict(row) for row in result]})
-
-@customers.route("/customers/age")
-@customers.doc("To query customers by age")
-class get_cust_age(Resource):
-
-    def get(self):
-        conn = connect()
-        select = text("""
-            SELECT DISTINCT AGE AS age
-            FROM customer
-            ORDER BY age DESC;""")
-        result = conn.execute(select).fetchall()
-        disconnect(conn)
-        return jsonify({'result': [dict(row) for row in result]})
     
 @customers.route("/customers/filter")
 @customers.doc("To filter customers by gender and age range")
@@ -210,39 +196,6 @@ class get_subscriptions(Resource):
             FROM subscription
             ORDER BY signup_date_time DESC
             LIMIT 5000;""")
-        result = conn.execute(select).fetchall()
-        disconnect(conn)
-        return jsonify({'result': [dict(row) for row in result]})
-
-#PRODUCTS ENDPOINTS    
-products = Namespace('products',
-    description = 'All operations related to products',
-    path='/api/v1')
-api.add_namespace(products)
-
-@products.route("/products")
-class get_all_products(Resource):
-    def get(self):
-        conn = connect()
-        select = text("""
-            SELECT *
-            FROM product;""")
-        result = conn.execute(select).fetchall()
-        disconnect(conn)
-        return jsonify({'result': [dict(row) for row in result]})
-
-@products.route("/products/<string:id>")
-@products.doc(params = {'id': 'The ID of the product'})
-class select_product(Resource):
-
-    @api.response(404, "Product not found")
-    def get(self, id):
-        id = str(id)
-        conn = connect()
-        select = text(f"""
-            SELECT *
-            FROM product
-            WHERE product_id = '{id}';""")
         result = conn.execute(select).fetchall()
         disconnect(conn)
         return jsonify({'result': [dict(row) for row in result]})
