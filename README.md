@@ -28,3 +28,21 @@ This endpoint is used to query customers by gender. It returns a list of distinc
 
 /customers/filter
 This endpoint is used to filter customers by gender and age range. It receives the gender and age range as query parameters and returns a filtered list of customers. If no gender or age range is specified, it returns all customers.
+
+## Streamlit Application
+### main.py
+
+Login() function:
+Allows users to login by providing username and password. If user enters valid login credentials and clicks login, function sends a GET request to the backend API to authenticate the user. If user user is authenticated, function stores the JWT token in session state and displays success message. If authentication fails, error message is displayed.
+
+Register() function:
+Allows new users to register by providing username and password. If user registers valid details and clicks Register, function sends POST request to backend API to create a new user account. If account is successfully created, function stores the JWT token in session state and displays success image. If registration fails, error message is displayed.
+
+login_or_register():
+Displays radio button allowing users to select whether they want to login or register. Depending on the user's selection, the appropriate function is called to handle the login or registration process.
+
+present_dashboard():
+Displays the contents of the dashboard.py file. This is where all of the KPIs are presented.
+
+main():
+Main entrypoint of the Streamlit app. Displays logo and dashboard title. If user is not authenticated with a token, the login_or_register function is called. If user is authenticated with token then present_dashboard() is called to display the dashboard.
