@@ -3,5 +3,5 @@ Flask
 gunicorn==20.1.0
 flask-restx
 pymysql
-werkzeug.security
-jwt
+werkzeug
+PyJWT
