@@ -24,7 +24,6 @@ def login():
             token = response.content
             st.session_state["token"] = token
             st.success("Logged in successfully!")
-            st.write(st.session_state.token)
             return st.session_state.token
         elif response.status_code == 500:
             st.error(response.content)
@@ -46,7 +45,6 @@ def register():
             token = response.content
             st.session_state["token"] = token
             st.success("Logged in successfully!")
-            st.write(st.session_state.token)
             return st.session_state.token
         elif response.status_code == 500:
             st.error(response.content)

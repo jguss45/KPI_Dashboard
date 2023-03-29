@@ -1,8 +1,7 @@
 streamlit
 requests
-jwt
+PyJWT
 pandas
 numpy
 datetime
-matplotlib.pyplot
-matplotlib.ticker
+matplotlib
