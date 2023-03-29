@@ -4,7 +4,11 @@ import jwt
 from dashboard import display_dashboard
 
 #Backend API URL
-base_url = 'http://127.0.0.1:5000/api/v1'
+#if these links are no longer hosted, you can launch both main.py files locally and replace with localhost
+base_url = 'https://backend-dot-capstoneproject-376415.oa.r.appspot.com/api/v1'
+
+#Frontend URL
+frontend_url = 'https://frontend-dot-capstoneproject-376415.oa.r.appspot.com/'
 
 #Streamlit app title
 st.set_page_config(page_title="H&M KPI Dashboard")
@@ -18,7 +22,7 @@ def login():
 
     if st.button("Login"):
         payload = {"username": username, "password": password}
-        response = requests.get(base_url+'/users/login', json=payload)
+        response = requests.post(base_url+'/users/login', json=payload)
 
         if response.status_code == 200:
             token = response.content

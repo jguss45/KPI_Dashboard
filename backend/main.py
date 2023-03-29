@@ -66,9 +66,9 @@ class view_users(Resource):
         disconnect(conn)
         return jsonify({'result': [dict(row) for row in result]})
 
-@users.route("/users/login")
+@users.route("/users/login", methods=["POST"])
 class handle_login(Resource):
-    def get(self):
+    def post(self):
         #receive user login input
         username = request.json.get('username')
         password = request.json.get('password')

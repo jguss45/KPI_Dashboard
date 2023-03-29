@@ -11,7 +11,7 @@ import jwt
 SECRET_KEY = "please-dont-hack-me"
 
 #Backend API URL
-base_url = 'http://127.0.0.1:5000/api/v1'
+base_url = 'https://backend-dot-capstoneproject-376415.oa.r.appspot.com/api/v1'
 
 
 def display_dashboard(token):
