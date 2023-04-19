@@ -52,3 +52,4 @@ Function which contains entirety of code for H&M KPIs
 
 ## Link to deployed website:
 https://frontend-dot-capstoneproject-376415.oa.r.appspot.com
+***Link no longer active as I shutdown my Google SQL Database and App Engine services to save money. 
